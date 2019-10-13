@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ab.tjl.dao.CommentDao">
+
+<resultMap type="Comment" id="CommentResult">
+	<result property="id" column="id"/>
+	<result property="userIp" column="userIp"/>
+	<result property="content" column="content"/>	
+	<result property="commentDate" column="commentDate"/>
+	<result property="state" column="state"/>	
+	<association property="blog" column="blogId" select="ab.tjl.dao.BlogDao.findById"/>
+</resultMap>
+
+	<!--添加一条评论-->
+	<insert id="add" parameterType="Comment">
+		insert into t_comment values(null,#{userIp},#{blog.id},#{content},now(),0)
+	</insert>
+
+	<!--更新一条评论-->
+	<update id="update" parameterType="Comment">
+		update t_comment
+		<set>
+			<if test="state!=null">
+				state=#{state},
+			</if>
+		</set>
+		where id=#{id}
+	</update>
+
+	<!--评论查询-->
+	<select id="list" parameterType="Map" resultMap="CommentResult">
+		select * from t_comment
+		<where>
+			<if test="blogId!=null">
+				and blogId=#{blogId}
+			</if>
+			<if test="state!=null">
+				and state=#{state}
+			</if>
+		</where>
+		order by commentDate
+		<if test="start!=null and size!=null">
+			limit #{start},#{size}
+		</if>
+	</select>
+
+	<!--评论数量-->
+	<select id="getTotal" parameterType="Map" resultType="Long">
+		select count(*) from t_comment
+		<where>
+			<if test="state!=null">
+				and state=#{state}
+			</if>
+		</where>
+	</select>
+
+	<!--删除评论-->
+	<delete id="delete" parameterType="Integer">
+		delete from t_comment where id=#{id}
+	</delete>
+
+	<!--根据博客id删除评论-->
+	<delete id="deleteByBlogId" parameterType="Integer">
+		delete from t_comment where blogId=#{blogId}
+	</delete>
+</mapper>
